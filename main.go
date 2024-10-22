@@ -9,7 +9,10 @@ import (
 	"math/big"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -25,6 +28,9 @@ type EthRPCResponse struct {
     Result string `json:"result"`
     ID     int    `json:"id"`
 }
+
+
+
 func loadEnvVar() string{
 	err := godotenv.Load()
     if err != nil {
@@ -36,12 +42,10 @@ func loadEnvVar() string{
 	return apiKey 
 }
 
-func main() {
-	
-	API_KEY := loadEnvVar() 
-    url := "https://mainnet.infura.io/v3/" + API_KEY 
 
-    // Create JSON-RPC request to get the current gas price
+
+
+func queryGas(url string)*big.Float{
     request := EthRPCRequest{
         JSONRPC: "2.0",
         Method:  "eth_gasPrice",
@@ -53,14 +57,14 @@ func main() {
     requestBody, err := json.Marshal(request)
     if err != nil {
         fmt.Println("Error encoding request:", err)
-        return
+        return nil 
     }
 
     // Send the HTTP request
     resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
     if err != nil {
         fmt.Println("Error sending request:", err)
-        return
+        return nil
     }
     defer resp.Body.Close()
 
@@ -68,7 +72,7 @@ func main() {
     body, err := ioutil.ReadAll(resp.Body)
     if err != nil {
         fmt.Println("Error reading response:", err)
-        return
+        return nil
     }
 
     // Decode the JSON-RPC response
@@ -76,7 +80,7 @@ func main() {
     err = json.Unmarshal(body, &rpcResponse)
     if err != nil {
         fmt.Println("Error decoding response:", err)
-        return
+        return nil
     }
 
 	hex_res := strings.TrimPrefix(rpcResponse.Result, "0x")
@@ -89,5 +93,39 @@ func main() {
     weiFloat := new(big.Float).SetInt(decimalValue) 
     gweiFloat := new(big.Float).Quo(weiFloat, big.NewFloat(1e9)) 
 
-    fmt.Printf("Gas Price in Gwei: %.6g\n", gweiFloat)
+    return gweiFloat 
+}
+
+
+
+
+func main() {
+	
+	API_KEY := loadEnvVar() 
+    url := "https://mainnet.infura.io/v3/" + API_KEY 
+
+    stopChan := make(chan os.Signal, 1)
+	signal.Notify(stopChan, syscall.SIGINT, syscall.SIGTERM)
+
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				gasPrice := queryGas(url)
+				if gasPrice == nil {
+					log.Printf("Error querying ETH node - Null price")
+					continue
+				}
+				fmt.Printf("Gas Price: %f\n", gasPrice)
+			}
+		}
+	}()
+
+	<-stopChan // Wait for a signal to stop
+	fmt.Println("Shutting down...")
+
+    
 }
