@@ -1,0 +1,41 @@
+/* Set up the general styles */
+html,
+body,
+#root,
+.App {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  background-color: white;
+  overflow: hidden; /* Prevent scrolling */
+  font-family: Arial, sans-serif;
+}
+
+/* Flexbox to center the header and viewer horizontally */
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20px; /* Adjust this to move the content down if needed */
+}
+
+/* Style the title */
+.title {
+  font-size: 2rem; /* Adjust font size as needed */
+  margin-bottom: 10px;
+  color: black; /* Set text color */
+}
+
+/* Ensure the DiamondViewer is aligned with the text */
+.viewer-container {
+  display: inline-block; /* Ensures it's inline with the title */
+  width: 300px; /* Adjust the width of the container */
+  height: 300px; /* Adjust the height to suit your scene */
+}
+
+/* Ensure the Three.js canvas fills the container */
+canvas {
+  width: 100%;
+  height: 100%;
+}
