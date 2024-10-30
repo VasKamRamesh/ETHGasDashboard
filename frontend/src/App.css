@@ -1,7 +1,6 @@
 /* Set up the general styles */
 html,
 body,
-#root,
 .App {
   margin: 0;
   padding: 0;
@@ -30,8 +29,8 @@ body,
 /* Ensure the DiamondViewer is aligned with the text */
 .viewer-container {
   display: inline-block; /* Ensures it's inline with the title */
-  width: 300px; /* Adjust the width of the container */
-  height: 300px; /* Adjust the height to suit your scene */
+  width: 1px; /* Adjust the width of the container */
+  height: 1px; /* Adjust the height to suit your scene */
 }
 
 /* Ensure the Three.js canvas fills the container */
